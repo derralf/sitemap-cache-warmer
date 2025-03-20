@@ -1,4 +1,37 @@
 <?php
 return array(
-    'key' => '9f316c95a356aab49cf5e4fcf3418295' // Secret key to allow traversing sitemaps
+    // Secret key to allow traversing sitemaps
+    'key' => '9f316c95a356aab49cf5e4fcf3418295',
+
+    // Reporting unaccessible pages
+    //'reportProblematicUrls' => true,
+    //'reportProblematicUrlsTo' => "your-address@example.com",
+
+    // Write simple Logfile
+    'writeLogfile' => true,
+
+    // Include-filter (ONLY allow URLs containing these name components)
+    'urlfilter_include' => array(
+        // '/blog/',
+        // '/products/',
+        // '/products/furniture/modern-sofa/',
+        // '/blog/interior-design/',
+        // '/shop/special-offers/'
+        // '/restaurant/menu/',
+        // 'my-domain.com/restaurant/'
+    ),
+
+    // Exclude-filter (Exclude URLs containing these name components)
+    'urlfilter_exclude' => array(
+        // '/admin/',
+        // '/private/',
+        // '/login/',
+        // '/checkout/',
+        // '/terms-and-conditions/',
+        // '/privacy-policy/',
+        // 'my-domain.com/privacy-policy/'
+        // 'my-domain.com/category/',
+        // 'my-domain.com/tags/',
+    )
+
 );

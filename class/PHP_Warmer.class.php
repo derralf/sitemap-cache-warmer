@@ -26,14 +26,14 @@ class PHP_Warmer
         $this->to = (int)$this->get_parameter('to', false);
         $this->response = new PHP_Warmer_Response();
         $this->context = stream_context_create(
-            /****
-			UNCOMMENT THIS IF YOU USE AN HTTP LOGIN, COMMONLY USED ON TEST ENVS
 			array (
 				'http' => array (
-					'header' => 'Authorization: Basic ' . base64_encode("youruser:yourpassword")
+					//'header'=> "User-Agent: PHP Cache Warmer\r\n"
+					'user_agent' => 'PHP Cache Warmer'
+					// UNCOMMENT THIS HEADER IF YOU USE AN HTTP LOGIN, COMMONLY USED ON TEST ENVS
+					//'header' => 'Authorization: Basic ' . base64_encode("youruser:yourpassword") . "\r\nUser-Agent: PHP Cache Warmer\r\n"
 				)
 			)
-			*/
         );
     }
 
@@ -55,6 +55,10 @@ class PHP_Warmer
                 // Discover URL links
                 $urls = $this->process_sitemap($sitemap_url);
                 sort($urls);
+
+                // Apply filter
+                $urls = $this->urlfilter_include($urls);
+                $urls = $this->urlfilter_exclude($urls);
 
                 // Visit links
                 foreach($urls as $url)
@@ -100,6 +104,11 @@ class PHP_Warmer
 
         if ($this->config['reportProblematicUrls'] && count($this->urlProblems) > 0) {
             @mail($this->config['reportProblematicUrlsTo'], 'Warming cache ends with errors', "Those URLs cannot be warmed:\n" . implode("\n", $this->urlProblems));
+        }
+
+        // Write a simple logfile
+        if ($this->config['writeLogfile']) {
+            $this->writelogfile();
         }
 
         $this->response->display();
@@ -161,4 +170,57 @@ class PHP_Warmer
     {
         return isset($_GET[$key]) ? $_GET[$key] : $default_value;
     }
+
+
+    // Filter functions
+    function urlfilter_include($urls) {
+        if( isset($this->config['urlfilter_include']) && $this->config['urlfilter_include'] && is_array($this->config['urlfilter_include']) ) {
+            $needles = $this->config['urlfilter_include'];
+            //var_dump($needles);
+            $urls_filtered = array();
+            foreach($urls as $url) {
+                if ($this->strposa($haystack=$url, $needles)) {
+                    $urls_filtered[] = $url;
+                    //echo 'found url: ' . $url . "<br>\n";
+                }
+            }
+            return $urls_filtered;
+        }
+        return $urls;
+    }
+
+    function urlfilter_exclude($urls) {
+        if( isset($this->config['urlfilter_exclude']) && $this->config['urlfilter_exclude'] && is_array($this->config['urlfilter_exclude']) ) {
+            $needles = $this->config['urlfilter_exclude'];
+            $urls_filtered = array();
+            foreach($urls as $url) {
+                if (!$this->strposa($haystack=$url, $needles)) {
+                    $urls_filtered[] = $url;
+                }
+            }
+            return $urls_filtered;
+        }
+        return $urls;
+    }
+
+
+    // Helper for filter functions: strpos with needles as array
+    function strposa($haystack, $needles=array(), $offset=0) {
+        $chr = array();
+        foreach($needles as $needle) {
+            $res = strpos($haystack, $needle, $offset);
+            if ($res !== false) $chr[$needle] = $res;
+        }
+        if(empty($chr)) return false;
+        return min($chr);
+    }
+
+    // Write simple logfile
+    function writelogfile() {
+        $file = "log.txt";
+        $f=fopen($file, 'a');
+        fwrite($f,date('Y-m-d H:i:s') . ' - ' . $_SERVER['REMOTE_ADDR'] . ' - ' . $_SERVER['HTTP_USER_AGENT'] . "\n");
+        fclose($f);
+    }
+
 }
