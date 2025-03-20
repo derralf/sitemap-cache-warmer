@@ -1,0 +1,3 @@
+#!/bin/bash
+echo $(curl -s 'https://cachewarmup.my-domain.com/warm.php?key=9f316c95a356aab49cf5e4fcf3418295&url=https://my-domain.com/sitemap.xml1&sleep=0')
+
