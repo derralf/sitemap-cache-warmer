@@ -1,0 +1,33 @@
+################################################################################
+# force ssl
+# uncomment to force/redirect to https
+################################################################################
+#RewriteEngine On
+#RewriteCond %{HTTPS} !=on
+#RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+################################################################################
+# block access to (potientially) sensible files
+################################################################################
+
+# general
+<FilesMatch "\.env|\.git|\.gitignore|\.htaccess|bower\.json|gulpfile\.js|package\.json|README\.md|sftp-config\.json|composer\.json|composer\.lock|\.editorconfig|\.DS_Store">
+  Order allow,deny
+  Deny from all
+</FilesMatch>
+
+# cache warmer specific
+<FilesMatch "config\.php|config\.php\.example|cachewarmup\.sh|cachewarmup\.sh\.examle">
+  Order allow,deny
+  Deny from all
+</FilesMatch>
+
+# disallow logfile
+<Files "log.txt">
+  Order allow,deny
+  Deny from all
+</Files>
+
+# disallow directories
+RewriteRule ^class - [F,L]
+RewriteRule ^.git - [F,L]
